@@ -1,0 +1,55 @@
+@import "conversations.djinni"
+@import "drafts.djinni"
+@import "errors.djinni"
+@import "messages.djinni"
+@import "push.djinni"
+@import "syncer.djinni"
+@import "usersettings.djinni"
+
+Session = interface +c {
+	userSettings(): UserSettings;
+	conversations(): Conversations;
+	messages(): Messages;
+	messageAttachments(): MessageAttachments;
+	senders(): Senders;
+	drafts(): Drafts;
+	draftAttachments(): DraftAttachments;
+	syncer(): Syncer;
+
+	accountInfoAsync(listener: SessionAccountInfoListener): AsyncTask;
+	registerPushToken(token: PushToken): AsyncTask;
+	unregisterPushToken(token: PushToken): AsyncTask;
+
+	# Notify the session of events. Only call this from the UI thread!
+	notify(internalEvent: InternalEvent): list<Event>;
+}
+
+# Listener used in Client.createSessionAsync()
+SessionListener = interface +j +o {
+	# event must be passed to Session.notify() from UI thread
+	internalEvent(event: InternalEvent);
+}
+
+# Intentionally empty interface, because it cannot be used outside of C++,
+# other than being passed along to Session.notify().
+InternalEvent = interface +c {
+}
+
+# Listener used in Session.accountInfoAsync()
+SessionAccountInfoListener = interface +j +o {
+	finished(accountInfo: AccountInfo);
+	error(error: NetworkError);
+}
+
+# Information about a Kullo account
+AccountInfo = record {
+	planName: optional<string>;
+
+	# in bytes
+	storageQuota: optional<i64>;
+	storageUsed: optional<i64>;
+
+	# URL to web interface where account settings (notifications, ...) can be
+	# configured
+	settingsUrl: optional<string>;
+}

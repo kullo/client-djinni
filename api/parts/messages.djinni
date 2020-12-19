@@ -1,0 +1,162 @@
+@import "address.djinni"
+@import "asynctask.djinni"
+@import "datetime.djinni"
+@import "errors.djinni"
+
+Messages = interface +c {
+	# Returns all messages for the given conversation
+	allForConversation(convId: i64): list<i64>;
+
+	# Returns the message id of the latest record for the given sender address.
+	# Returns -1 for addresses without a sender record.
+	latestForSender(address: Address): i64;
+
+	# Deletes a message
+	remove(msgId: i64);
+
+	conversation(msgId: i64): i64;
+
+	deliveryState(msgId: i64): list<Delivery>;
+
+	isRead(msgId: i64): bool;
+
+	# returns true iff value changed in this call
+	setRead(msgId: i64, value: bool): bool;
+
+	isDone(msgId: i64): bool;
+
+	# returns true iff value changed in this call
+	setDone(msgId: i64, value: bool): bool;
+
+	dateSent(msgId: i64): DateTime;
+	dateReceived(msgId: i64): DateTime;
+	text(msgId: i64): string;
+
+	# Escapes special characters and wraps links into 'a' tags
+	#
+	# An application using this must preserve the whitespace in the HTML code,
+	# i.e. treat \n and \r\n as line breaks and not strip leading or trailing
+	# spaces in lines.
+	# This can be archived for example by wrapping this in a html block with
+	# style "white-space: pre-wrap;".
+	#
+	# When includeKulloAddresses is true, Kullo addresses are linked using the
+	# Kullo internal scheme "kulloInternal:" followed by the unescaped address.
+	# Those links must be handled by the Kullo client and must not be passed to
+	# other applications since the URI scheme is not standardized and the hash
+	# symbol is not compatible with a lot of applications.
+	#
+	# Web links are prioritized over Kullo address links and links do not overlap.
+	textAsHtml(msgId: i64, includeKulloAddresses: bool): string;
+
+	footer(msgId: i64): string;
+
+	# Full-text search for messages
+	#
+	# searchText: The text to search for. Does prefix matching.
+	# convId: Conversation ID to filter by conversation, or -1 to search all.
+	# sender: Filter by sender, if set.
+	# boundary: boundary used in result highlighting; auto-generated if unset
+	# limitResults: The maximum number of results to return.
+	searchAsync(
+		searchText: string,
+		convId: i64,
+		sender: optional<SenderPredicate>,
+		limitResults: i32,
+		boundary: optional<string>,
+		listener: MessagesSearchListener): AsyncTask;
+}
+
+SenderPredicate = record {
+	predicateOperator: SearchPredicateOperator;
+	senderAddress: string;
+}
+
+SearchPredicateOperator = enum {
+	Is;
+	IsNot;
+}
+
+MessagesSearchListener = interface +j +o {
+	finished(results: list<MessagesSearchResult>);
+}
+
+MessagesSearchResult = record {
+	msgId: i64;
+	convId: i64;
+	senderAddress: string;
+	dateReceived: DateTime;
+
+	# Snippet contains search strings wrapped in "(XYZ)" and "(/XYZ)" where XYZ
+	# is a random boundary in the format [a-zA-Z0-9]+ generated in every search
+	snippet: string;
+
+	boundary: string;
+}
+
+MessageAttachments = interface +c {
+	# Returns all attachments for the given message
+	allForMessage(msgId: i64): list<i64>;
+
+	# Returns true iff all attachments of the given message have been downloaded
+	# (see Syncer for how to download attachments)
+	allAttachmentsDownloaded(msgId: i64): bool;
+
+	# Filename (e.g. "hello.png")
+	filename(msgId: i64, attId: i64): string;
+
+	# MIME type (e.g. "image/png")
+	mimeType(msgId: i64, attId: i64): string;
+
+	# File size in bytes
+	size(msgId: i64, attId: i64): i64;
+
+	# SHA-512 hash of the attachment contents
+	hash(msgId: i64, attId: i64): string;
+
+	# Gets the content of the attachment as a BLOB
+	contentAsync(
+		msgId: i64,
+		attId: i64,
+		listener: MessageAttachmentsContentListener): AsyncTask;
+
+	# Saves the content of the attachment to a file. Path contains the absolute
+	# path where the file should be saved, including the filename.
+	saveToAsync(
+		msgId: i64,
+		attId: i64,
+		path: string,
+		listener: MessageAttachmentsSaveToListener): AsyncTask;
+}
+
+# Listener used in MessageAttachments.contentAsync()
+MessageAttachmentsContentListener = interface +j +o {
+	finished(msgId: i64, attId: i64, content: binary);
+}
+
+# Listener used in MessageAttachments.saveToAsync()
+MessageAttachmentsSaveToListener = interface +j +o {
+	finished(msgId: i64, attId: i64, path: string);
+	error(msgId: i64, attId: i64, path: string, error: LocalError);
+}
+
+# Delivery information for a single recipient.
+Delivery = interface +c {
+	recipient(): Address;
+	state(): DeliveryState;
+	reason(): optional<DeliveryReason>;
+	date(): optional<DateTime>;
+}
+
+DeliveryState = enum {
+	Unsent;
+	Delivered;
+	Failed;
+}
+
+DeliveryReason = enum {
+	Unknown;
+	DoesntExist;
+	TooLarge;
+	Canceled;
+}

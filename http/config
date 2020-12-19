@@ -1,0 +1,16 @@
+SOURCE="http/http.djinni"
+
+CPP_OUT="../libkullo/kulloclient/http"
+CPP_NAMESPACE="Kullo::Http"
+CPP_INCLUDE_PREFIX="kulloclient/http/"
+CPP_EXTENDED_RECORD_INCLUDE_PREFIX="kulloclient/http/"  # there are none, must be set anyhow
+
+OBJC_PREFIX="KH"
+OBJC_OUT="../libkullo-ios/djinni/http"
+SUPPORTLIB_OBJC="../libkullo-ios/djinni/support-lib"
+
+JNI_OUT="../libkullo/jni/http"
+SUPPORTLIB_JNI="../libkullo/jni/support-lib"
+SUPPORTLIB_JNI_INCLUDE_PREFIX="jni/support-lib/jni/"
+JAVA_OUT="../android/libkullo/src/main_generated/java/net/kullo/libkullo/http"
+JAVA_PACKAGE="net.kullo.libkullo.http"

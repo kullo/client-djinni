@@ -1,0 +1,83 @@
+HttpMethod = enum {
+	Get;
+	Post;
+	Put;
+	Patch;
+	Delete;
+}
+
+HttpHeader = record {
+	key: string;
+	value: string;
+}
+
+Request = record {
+	method: HttpMethod;
+	url: string;
+	headers: list<HttpHeader>;
+}
+
+ResponseError = enum {
+	Canceled;
+	Timeout;
+	NetworkError;
+}
+
+Response = record {
+	error: optional<ResponseError>;
+	statusCode: i32;
+	headers: list<HttpHeader>;
+}
+
+RequestListener = interface +c {
+	read(maxSize: i64): binary;
+}
+
+ResponseListener = interface +c {
+	# Called when there's progress made on upload or download.
+	# The request can be canceled by returning the appropriate code.
+	progressed(progress: TransferProgress): ProgressResult;
+
+	dataReceived(data: binary);
+}
+
+# Encapsulates the progress of a transfer, measured in bytes.
+# Defaults to 0 if unknown.
+TransferProgress = record {
+	uploadTransferred: i64;
+	uploadTotal: i64;
+	downloadTransferred: i64;
+	downloadTotal: i64;
+}
+
+ProgressResult = enum {
+	Continue;
+	Cancel;
+}
+
+HttpClient = interface +j +o {
+	# Synchronously send the given request.
+	# Not thread-safe! Use a separate HttpClient instance per thread.
+	#
+	# * timeout in milliseconds or 0 for no timeout
+	# * requestListener must be non-null if method is PATCH, POST or PUT
+	# * responseListener may be null
+	sendRequest(
+		request: Request,
+		timeoutMs: i32,
+		requestListener: optional<RequestListener>,
+		responseListener: optional<ResponseListener>
+	): Response;
+}
+
+HttpClientFactory = interface +j +o {
+	createHttpClient() : HttpClient;
+
+	# Returns pairs of <library name, version number> for the libraries used.
+	versions(): map<string, string>;
+}
+
+Registry = interface +c {
+	static setHttpClientFactory(factory: HttpClientFactory);
+}
+

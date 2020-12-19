@@ -1,0 +1,13 @@
+# A task that libkullo wants to be executed asynchronously. It is passed to
+# TaskRunner.
+Task = interface +c {
+	# Must not be called from the UI thread.
+    run();
+}
+
+TaskRunner = interface +j +o {
+	# Runs the given task asynchronously (simplest case: in a new thread)
+	# and returns immediately.
+	runTaskAsync(task: Task);
+}
+

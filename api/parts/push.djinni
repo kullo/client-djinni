@@ -1,0 +1,25 @@
+PushToken = record {
+	type: PushTokenType;
+	# GCM: the token; APNS: the hex-encoded token
+	token: string;
+	environment: PushTokenEnvironment;
+}
+
+PushTokenType = enum {
+	# Google Cloud Messaging
+	GCM;
+	# Apple Push Notification Service
+	APNS;
+}
+
+PushTokenEnvironment = enum {
+	# GCM: when run on Android
+	Android;
+	# GCM: when run on iOS
+	IOS;
+	# APNS: when aps-environment=development
+	Development;
+	# APNS: when aps-environment=production
+	Production;
+}
+

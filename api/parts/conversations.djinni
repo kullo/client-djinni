@@ -1,0 +1,48 @@
+@import "address.djinni"
+@import "datetime.djinni"
+
+Conversations = interface +c {
+	# Returns all conversation IDs in no particular order
+	all() : list<i64>;
+
+	# Returns the conversation with the given participants (excluding the local
+	# user), or -1 if the conversation doesn't exist
+	get(participants: set<Address>): i64;
+
+	# Adds a new conversation with the given participants (excluding the local
+	# user) if it doesn't exist yet. Returns its ID in either case. All
+	# addresses should have been validated through Client::addressExistsAsync()
+	# before passing them into add().
+	add(participants: set<Address>): i64;
+
+	# Triggers removal of the given conversation. This will also remove all
+	# dependencies (messages, drafts, ...). Removal happens asynchronously after
+	# calling this method.
+	triggerRemoval(convId: i64);
+
+	# Returns the participants (excluding the local user)
+	participants(convId: i64): set<Address>;
+
+	# Total number of messages
+	totalMessages(convId: i64): i32;
+
+	# Total number of unread messages
+	unreadMessages(convId: i64): i32;
+
+	# Total number of undone messages
+	undoneMessages(convId: i64): i32;
+
+	# Total number of incoming messages
+	incomingMessages(convId: i64): i32;
+
+	# Total number of outgoing messages
+	outgoingMessages(convId: i64): i32;
+
+	# Timestamp of the latest message (for sorting). Returns the result of
+	# emptyConversationTimestamp() if the conversation has no messages.
+	latestMessageTimestamp(convId: i64): DateTime;
+
+	# A date many years in the future, used in latestMessageTimestamp
+	static emptyConversationTimestamp(): DateTime;
+}
+

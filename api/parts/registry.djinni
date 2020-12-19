@@ -1,0 +1,13 @@
+@import "log.djinni"
+@import "taskrunner.djinni"
+
+# Registry for helpers that are used by libkullo.
+Registry = interface +c {
+	# Sets the log listener. If null is passed, default behavior is restored,
+	# which means writing the log messages to stdout.
+	static setLogListener(listener: optional<LogListener>);
+
+	# Sets a new TaskRunner. Must be done before any async method is called.
+	static setTaskRunner(taskRunner: TaskRunner);
+}
+

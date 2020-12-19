@@ -1,0 +1,18 @@
+# Listener used in Registry.setLogListener()
+LogListener = interface +j +o {
+	# Called whenever libkullo produces a log message.
+	writeLogMessage(
+		file: string, line: i32, function: string,
+		type: LogType, message: string, thread: string, stacktrace: string
+	);
+}
+
+LogType = enum {
+	None;
+	Debug;
+	Info;
+	Warning;
+	Error;
+	Fatal;
+}
+

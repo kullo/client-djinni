@@ -1,0 +1,10 @@
+@import "address.djinni"
+
+Senders = interface +c {
+	name(msgId: i64): string;
+	# Returns null if the msgId is invalid
+	address(msgId: i64): optional<Address>;
+	organization(msgId: i64): string;
+	avatarMimeType(msgId: i64): string;
+	avatar(msgId: i64): binary;
+}

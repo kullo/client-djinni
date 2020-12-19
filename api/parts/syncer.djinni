@@ -1,0 +1,134 @@
+@import "asynctask.djinni"
+@import "datetime.djinni"
+@import "errors.djinni"
+
+SyncMode = enum {
+	# Do the minimal work required to send all unsent prepared drafts
+	SendOnly;
+	# Sync everything, but don't download attachments
+	WithoutAttachments;
+	# Sync everything, including attachments
+	Everything;
+}
+
+# Handles syncing, including downloading of attachments. Prevents multiple syncs
+# from running in parallel by building a queue and intelligently merging sync
+# requests.
+# Examples: Enqueuing a WithoutAttachments sync removes a SendOnly sync from the
+# queue. A running SendOnly sync would be cancelled. Enqueuing a SendOnly sync
+# while a WithoutAttachments sync is running or enqueued will do nothing.
+# Enqueuing an Everything sync will remove all attachment download requests from
+# the queue.
+Syncer = interface +c {
+	# Set or replace the SyncerListener which should receive sync events.
+	#
+	# Thread-safe.
+	setListener(listener: SyncerListener);
+
+	# Get the finishing time of the last successful full sync.
+	# A full sync is one with "WithoutAttachments" or "Everything" sync mode.
+	# Returns null if there hasn't been a sync yet.
+	#
+	# Thread-safe.
+	lastFullSync(): optional<DateTime>;
+
+	# Request that the data specified in mode is synced.
+	#
+	# Thread-safe.
+	requestSync(mode: SyncMode);
+
+	# Request that all attachments for the given message are downloaded.
+	#
+	# Thread-safe.
+	requestDownloadingAttachmentsForMessage(msgId: i64);
+
+	# Cancels the running sync and enqueued syncs, but doesn't wait for
+	# termination. Stops all callbacks, even if the task continues to run.
+	#
+	# Thread-safe.
+	cancel();
+
+	# Returns true iff a sync is currently running.
+	#
+	# Thread-safe.
+	isSyncing(): bool;
+
+	# Blocks until the running sync and all enqueued syncs have finished.
+	#
+	# Thread-safe.
+	waitUntilDone();
+
+	# Blocks until the sync and all enqueued syncs have finished executing or
+	# until the timeout has expired. Returns false on timeout, true otherwise.
+	#
+	# Thread-safe.
+	waitForMs(timeout: i32): bool;
+}
+
+# Listener used in Syncer
+SyncerListener = interface +j +o {
+	# Called when the syncer's state changes from idle to syncing.
+	started();
+
+	# Called when a part of a draft that should be sent is too big.
+	# The syncer will continue syncing the other requested items.
+	draftPartTooBig(convId: i64, part: DraftPart, currentSize: i64, maxSize: i64);
+
+	# Called to inform about the progress of the current sync
+	progressed(progress: SyncProgress);
+
+	# Called when all requested syncs have finished. Not called when error() is
+	# called.
+	finished();
+
+	# Called when an error occurred during syncing which makes continuing the
+	# sync impossible.
+	error(error: NetworkError);
+}
+
+DraftPart = enum {
+    Content;
+    Attachments;
+}
+
+SyncPhase = enum {
+    Keys;
+    Profile;
+    # Downloading and processing of incoming messages
+    IncomingMessages;
+    # Downloading and processing of attachments
+    IncomingAttachments;
+    # Sending messages
+    OutgoingMessages;
+}
+
+# A block of attachments from a single message
+AttachmentsBlockDownloadProgress = record {
+	downloadedBytes: i64;
+	totalBytes: i64;
+}
+
+# Encodes a progress update during syncing. Unknown totals are set to 0.
+SyncProgress = record {
+	phase: SyncPhase;
+
+	# inbox (unit: messages)
+	incomingMessagesProcessed: i64;
+	incomingMessagesTotal: i64;
+	incomingMessagesNew: i64;
+	incomingMessagesNewUnread: i64;
+	incomingMessagesModified: i64;
+	incomingMessagesDeleted: i64;
+
+	# incoming attachments (unit: bytes)
+	incomingAttachmentsDownloadedBytes: i64;
+	incomingAttachmentsTotalBytes: i64;
+	incomingAttachments: map<i64, AttachmentsBlockDownloadProgress>;
+
+	# outgoing messages + attachments (unit: uncompressed bytes)
+	outgoingMessagesUploadedBytes: i64;
+	outgoingMessagesTotalBytes: i64;
+
+	# Run time of the current sync (unit: milliseconds)
+	runTimeMs: i64;
+}

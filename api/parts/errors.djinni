@@ -1,0 +1,24 @@
+NetworkError = enum {
+	# Client too old or otherwise blocked; should check for update
+	Forbidden;
+	# Client and server protocol incompatible; should check for update
+	Protocol;
+	# Bad credentials (address + master key)
+	Unauthorized;
+	# Server-side error
+	Server;
+	# Network connection couldn't be established
+	Connection;
+	# Any other error
+	Unknown;
+}
+
+LocalError = enum {
+	# File is too big
+	FileTooBig;
+	# Couldn't read or write to file
+	Filesystem;
+	# Any other error
+	Unknown;
+}
+

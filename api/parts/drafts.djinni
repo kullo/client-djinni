@@ -1,0 +1,77 @@
+@import "asynctask.djinni"
+@import "errors.djinni"
+
+Drafts = interface +c {
+	text(convId: i64): string;
+	setText(convId: i64, text: string);
+
+	state(convId: i64): DraftState;
+
+	# The draft will be sent on the next sync. This will throw an exception if
+	# UserSettings::name() is empty.
+	prepareToSend(convId: i64);
+
+	# Clears the draft and removes the corresponding attachments.
+	clear(convId: i64);
+}
+
+DraftState = enum {
+	Editing;
+	Sending;
+}
+
+DraftAttachments = interface +c {
+	# Returns all attachments for the given draft
+	allForDraft(convId: i64): list<i64>;
+
+	# Adds a new attachment to a draft
+	addAsync(
+		convId: i64,
+		path: string,
+		mimeType: string,
+		listener: DraftAttachmentsAddListener): AsyncTask;
+
+	# Removes an attachment from a draft
+	remove(convId: i64, attId: i64);
+
+	filename(convId: i64, attId: i64): string;
+	setFilename(convId: i64, attId: i64, filename: string);
+	mimeType(convId: i64, attId: i64): string;
+	size(convId: i64, attId: i64): i64;
+	hash(convId: i64, attId: i64): string;
+
+	# Gets the content of the attachment as a BLOB
+	contentAsync(
+		convId: i64,
+		attId: i64,
+		listener: DraftAttachmentsContentListener): AsyncTask;
+
+	# Saves the content of the attachment to a file. Path contains the absolute
+	# path where the file should be saved, including the filename.
+	saveToAsync(
+		convId: i64,
+		attId: i64,
+		path: string,
+		listener: DraftAttachmentsSaveToListener): AsyncTask;
+}
+
+# Listener used in DraftAttachments.addAsync()
+DraftAttachmentsAddListener = interface +j +o {
+	# Indicates progress when adding an attachment.
+	# Note: not guaranteed to be called at any specific point.
+	progressed(convId: i64, attId: i64, bytesProcessed: i64, bytesTotal: i64);
+	finished(convId: i64, attId: i64, path: string);
+	error(convId: i64, path: string, error: LocalError);
+}
+
+# Listener used in DraftAttachments.contentAsync()
+DraftAttachmentsContentListener = interface +j +o {
+	finished(convId: i64, attId: i64, content: binary);
+}
+
+# Listener used in DraftAttachments.saveToAsync()
+DraftAttachmentsSaveToListener = interface +j +o {
+	finished(convId: i64, attId: i64, path: string);
+	error(convId: i64, attId: i64, path: string, error: LocalError);
+}
+

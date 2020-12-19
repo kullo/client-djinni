@@ -1,0 +1,36 @@
+Event = record {
+	event: EventType;
+	# -1 if not applicable
+	conversationId: i64;
+	# -1 if not applicable
+	messageId: i64;
+	# -1 if not applicable
+	attachmentId: i64;
+}
+
+EventType = enum {
+	# Conversation added
+	ConversationAdded;
+	# Conversation removed
+	ConversationRemoved;
+	# Any property of Conversations has changed for a single conversation
+	ConversationChanged;
+	# Timestamp of the latest message in a single conversation changed. This may affect
+	# the order of the conversations list. Whenever this is emitted, ConversationChanged
+	# is also emitted.
+	ConversationLatestMessageTimestampChanged;
+
+	DraftStateChanged;
+	DraftTextChanged;
+	DraftAttachmentAdded;
+	DraftAttachmentRemoved;
+	MessageAdded;
+	MessageDeliveryChanged;
+	MessageStateChanged;
+	MessageAttachmentsDownloadedChanged;
+	MessageRemoved;
+
+	# One of the user settings keys changed. Emitted once for every key that changed.
+	# TODO: pass key with this event
+	UserSettingsChanged;
+}

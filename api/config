@@ -1,0 +1,16 @@
+SOURCE="api/api.djinni"
+
+CPP_OUT="../libkullo/kulloclient/api"
+CPP_NAMESPACE="Kullo::Api"
+CPP_INCLUDE_PREFIX="kulloclient/api/"
+CPP_EXTENDED_RECORD_INCLUDE_PREFIX="kulloclient/api_impl/"
+
+OBJC_PREFIX="KA"
+OBJC_OUT="../libkullo-ios/djinni/api"
+SUPPORTLIB_OBJC="../libkullo-ios/djinni/support-lib"
+
+JNI_OUT="../libkullo/jni/api"
+SUPPORTLIB_JNI="../libkullo/jni/support-lib"
+SUPPORTLIB_JNI_INCLUDE_PREFIX="jni/support-lib/jni/"
+JAVA_OUT="../android/libkullo/src/main_generated/java/net/kullo/libkullo/api"
+JAVA_PACKAGE="net.kullo.libkullo.api"

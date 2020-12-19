@@ -1,0 +1,34 @@
+MasterKey = record +c +j +o {
+	# key as 16 blocks of 6 digits each
+	blocks: list<string>;
+}
+
+MasterKeyHelpers = interface +c {
+	# Returns null if pem is not well-formed
+	static createFromPem(pem: string): optional<MasterKey>;
+
+	# Returns null if dataBlocks is not well-formed
+	static createFromDataBlocks(dataBlocks: list<string>): optional<MasterKey>;
+
+	# Validates a single block.
+	# A block string is valid iff it contains exactly 6 digits
+	# and fulfills the Luhn mod10 requirements
+	static isValidBlock(block: string): bool;
+
+	# Returns PEM formatted MasterKey
+	static toPem(masterKey: MasterKey): string;
+
+	# Returns the MasterKey, encrypted with the given password.
+	# Shouldn't be called from the UI thread as it is (deliberately) slow.
+	static encrypt(password: string, masterKey: MasterKey): string;
+
+	# Decrypted an encrypted MasterKey, given a password.
+	# Shouldn't be called from the UI thread as it is (deliberately) slow.
+	# Returns null if given the wrong password.
+	static decrypt(password: string, encryptedMasterKey: string): optional<MasterKey>;
+}
+
+InternalMasterKeyUtils = interface +c {
+	# Checks a MasterKey constructor argument for validity
+	static isValid(blocks: list<string>): bool;
+}

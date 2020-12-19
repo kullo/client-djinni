@@ -1,0 +1,28 @@
+DateTime = record +c +j +o {
+	year: i16;
+	month: i8;
+	day: i8;
+	hour: i8;
+	minute: i8;
+	second: i8;
+	tzOffsetMinutes: i16;
+}
+
+InternalDateTimeUtils = interface +c {
+	# Checks a set of DateTime constructor arguments for validity
+	static isValid(
+		year: i16, month: i8, day: i8, hour: i8, minute: i8, second: i8,
+		tzOffsetMinutes: i16): bool;
+
+	# Returns the current time in the UTC timezone
+	static nowUtc(): DateTime;
+
+	# Returns the RFC3339 representation
+	# yyyy-mm-ddThh:mm:ss[.f+](Z|(+|-)hh:mm) (case-insensitive)
+	static toString(dateTime: DateTime): string;
+
+	# Compares two DateTime objects, taking time zones etc. into account.
+	# Returns -1 iff lhs < rhs, 0 iff lhs == rhs, 1 iff lhs > rhs.
+	static compare(lhs: DateTime, rhs: DateTime): i8;
+}
+

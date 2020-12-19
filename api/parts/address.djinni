@@ -1,0 +1,16 @@
+# Represents a Kullo address
+Address = record +c +j +o {
+	# Constructor must ensure this is normalized
+	localPart: string;
+	# Constructor must ensure this is normalized
+	domainPart: string;
+}
+
+AddressHelpers = interface +c {
+	static create(address: string): optional<Address>;
+}
+
+InternalAddressUtils = interface +c {
+	# Checks a set of Address constructor arguments for validity
+	static isValid(localPart: string, domainPart: string): bool;
+}

@@ -1,0 +1,38 @@
+@import "address.djinni"
+@import "datetime.djinni"
+@import "masterkey.djinni"
+
+# Settings specific to the local user
+UserSettings = interface +c {
+	# Kullo address (e.g. "john.doe#kullo.net")
+	address(): Address;
+
+	masterKey(): MasterKey;
+
+	# Real name (e.g. "John Doe"). Defaults to "".
+	name(): string;
+	setName(name: string);
+
+	# Organization (e.g. "Doe Inc."). Defaults to "".
+	organization(): string;
+	setOrganization(organization: string);
+
+	# Message footer (e.g. "42 Doe Ave., Doetown 12345"). Defaults to "".
+	footer(): string;
+	setFooter(footer: string);
+
+	# MIME type of the avatar (e.g. "image/jpeg"). Defaults to "".
+	avatarMimeType(): string;
+	setAvatarMimeType(mimeType: string);
+
+	# Binary contents of the avatar image file of type avatarMimeType.
+	# Defaults to a zero-length vector.
+	avatar(): binary;
+	setAvatar(avatar: binary);
+
+	# When to show the next backup reminder. Returns null if no reminder date
+	# is set. Defaults to a date in the past.
+	nextMasterKeyBackupReminder(): optional<DateTime>;
+	setNextMasterKeyBackupReminder(reminderDate: optional<DateTime>);
+}
+

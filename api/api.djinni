@@ -1,0 +1,7 @@
+@import "parts/event.djinni"
+@import "parts/client.djinni"
+@import "parts/registration.djinni"
+@import "parts/registry.djinni"
+@import "parts/senders.djinni"
+@import "parts/session.djinni"
+@import "parts/usersettings.djinni"
